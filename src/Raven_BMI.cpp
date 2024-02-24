@@ -297,6 +297,9 @@ void CRavenBMI::Initialize(std::string config_file)
   pModel->SummarizeToScreen           (Options);
   pModel->GetEnsemble()->Initialize   (pModel,Options);
 
+  // something in the previous steps might have changed the duration, so we may need to set it again
+  Options.duration = ALMOST_INF;  // "infinity": will run as long as "Update()" is called
+
   CheckForErrorWarnings(false, pModel);
 
   // all the output variables must be checked
@@ -331,7 +334,6 @@ void CRavenBMI::Initialize(std::string config_file)
   pModel->UpdateHRUForcingFunctions  (Options,tt);
   pModel->UpdateDiagnostics          (Options,tt);
   pModel->WriteMinorOutput           (Options,tt);
-
 }
 
 //////////////////////////////////////////////////////////////////

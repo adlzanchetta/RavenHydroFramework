@@ -282,8 +282,7 @@ void CRavenBMI::Initialize(std::string config_file)
   WARNINGS.close();
 
   Options.in_bmi_mode  = true;  // flag needed to ignore some arguments of the .rvi file
-  Options.rvt_filename = "";   // just a dummy filename to avoid errors
-  Options.duration     = ALMOST_INF;  // "infinity": will run as long as "Update()" is called
+  Options.rvt_filename = "";    // just a dummy filename to avoid errors
 
   //Read input files, create model, set model options
   if (!ParseInputFiles(pModel, Options)){
@@ -297,8 +296,10 @@ void CRavenBMI::Initialize(std::string config_file)
   pModel->SummarizeToScreen           (Options);
   pModel->GetEnsemble()->Initialize   (pModel,Options);
 
-  // something in the previous steps might have changed the duration, so we may need to set it again
-  Options.duration = ALMOST_INF;  // "infinity": will run as long as "Update()" is called
+  // pModel->Initialize() sets the duration to 365 (days) by default, but in BMI mode the duration
+  //  of the simulation is governed by the framwork consuming the BMI interface, so we set the
+  //  duration to ALMOST_INF(inite) to avoid the model stopping by itself
+  Options.duration = ALMOST_INF;
 
   CheckForErrorWarnings(false, pModel);
 

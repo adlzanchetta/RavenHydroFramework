@@ -425,7 +425,10 @@ void CModel::UpdateHRUForcingFunctions(const optStruct &Options,
       //--Gauge Corrections------------------------------------------------
       if (Options.in_bmi_mode && !rvt_file_provided)  // temperature was given by the BMI and no gauge corrections are to be applied
       {
-        F.temp_daily_ave = F.temp_daily_max = F.temp_daily_min = F.temp_ave;  // TODO: check if this is acceptable
+        // TODO: test if is fair to do it now with arbitrary inputs
+        // F.temp_daily_ave = F.temp_daily_max = F.temp_daily_min = F.temp_ave;
+        cout << "SKIPPING TWEK!\n";
+        ;
       }
       else if (!(temp_ave_gridded || (temp_daily_min_gridded && temp_daily_max_gridded) || temp_daily_ave_gridded)) //Gauge Data
       {

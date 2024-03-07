@@ -10,13 +10,6 @@
 const int GRID_SUBBASIN=1;
 const int GRID_HRU     =0;
 
-// constants used in the config file (cfg_file) parsing
-const std::string CFG_FILE_CLIARGS_TAG = "cli_args";
-const std::string CFG_FILE_INPVARS_TAG = "input_vars";
-const std::string CFG_FILE_OUTVARS_TAG = "output_vars";
-const std::string CFG_FILE_IOVAR_FORCE_TAG = "forcing";
-const std::string CFG_FILE_IOVAR_HRUST_TAG = "hru_state";
-const std::string CFG_FILE_IOVAR_SUBST_TAG = "subbasin_state";
 
 //////////////////////////////////////////////////////////////////
 /// \brief RavenBMI class constructor and destructor
@@ -260,6 +253,99 @@ void CRavenBMI::_ReadConfigFile(std::string config_file)
 
 
 //////////////////////////////////////////////////////////////////
+/// \brief Updates the output variables' attributes
+///
+/// \return void - sets the values of the attributes for variable ids and layer indexes out of the variable names, or raises an exception
+//
+void CRavenBMI::_UpdateOutputVariables()
+{
+  int config_out_var_layer_index;
+  int config_value_id;
+  for (int i = 0; i < output_var_names.size(); i++) {
+    if (output_var_type[i] == CFG_FILE_IOVAR_SUBST_TAG) {
+      output_var_ids.push_back(-1);
+      output_var_layer_index.push_back(-1);
+      continue;
+    }
+    if (output_var_type[i] == CFG_FILE_IOVAR_HRUST_TAG) {
+      config_value_id = pModel->GetStateVarInfo()->StringToSVType(output_var_names[i],
+                                                                  config_out_var_layer_index,
+                                                                  true);
+      output_var_ids.push_back(config_value_id);
+      output_var_layer_index.push_back(config_out_var_layer_index);
+      continue;
+    }
+    throw std::logic_error("WARNING: Output variable '" + output_var_names[i] + 
+                           "' has an invalid type '" + output_var_type[i] + "'.");
+  }
+}
+
+
+//////////////////////////////////////////////////////////////////
+/// \brief Updates flags for calculating input variables
+///
+/// \return void - sets the values of the flags for calculating input variables, or raises an exception
+//
+void CRavenBMI::_UpdateCalculateInputFlags()
+{
+  bool input_temp_ave = false;
+  bool input_temp_daily_ave = false;
+  bool input_temp_daily_min = false;
+  bool input_temp_daily_max = false;
+  bool input_temp_month_ave = false;
+  bool input_temp_month_min = false;
+  bool input_temp_month_max = false;
+
+  // first we need to map which input variables are available
+  for (int i = 0; i < input_var_ids.size(); i++) {
+    switch (input_var_ids[i]) {
+      case F_TEMP_AVE:
+        input_temp_ave = true;
+        break;
+      case F_TEMP_DAILY_MIN:
+        input_temp_daily_min = true;
+        break;
+      case F_TEMP_DAILY_MAX:
+        input_temp_daily_max = true;
+        break;
+      case F_TEMP_DAILY_AVE:
+        input_temp_daily_ave = true;
+        break;
+      case F_TEMP_MONTH_MIN:
+        input_temp_month_min = true;
+        break;
+      case F_TEMP_MONTH_MAX:
+        input_temp_month_max = true;
+        break;
+      case F_TEMP_MONTH_AVE:
+        input_temp_month_ave = true;
+        break;
+      default:
+        break;
+    }
+  }
+
+  // now decisions can be made
+  if (input_temp_daily_min && input_temp_daily_max && !input_temp_daily_ave) {
+    Options.bmi_calc_temp_daily_ave = true;
+  } else {
+    Options.bmi_calc_temp_daily_ave = false;
+  }
+  if (input_temp_month_min && input_temp_month_max && !input_temp_month_ave) {
+    Options.bmi_calc_temp_month_ave = true;
+  } else {
+    Options.bmi_calc_temp_month_ave = false;
+  }
+  if (input_temp_ave && 
+      (!(input_temp_daily_min || input_temp_daily_max || input_temp_daily_ave)) &&
+      (!(input_temp_month_min || input_temp_month_max || input_temp_month_ave))) {
+    Options.bmi_only_temp_ave = true;
+  }
+
+}
+
+
+//////////////////////////////////////////////////////////////////
 /// \brief Initialization called prior to model simulation
 ///
 /// \param config_file [in] name of configuration file (unused)
@@ -302,26 +388,10 @@ void CRavenBMI::Initialize(std::string config_file)
   Options.duration = ALMOST_INF;
 
   CheckForErrorWarnings(false, pModel);
-
+  
   // all the output variables must be checked
-  int config_out_var_layer_index;
-  int config_value_id;
-  for (int i = 0; i < output_var_names.size(); i++) {
-    if (output_var_type[i] == CFG_FILE_IOVAR_SUBST_TAG) {
-      output_var_ids.push_back(-1);
-      output_var_layer_index.push_back(-1);
-      continue;
-    }
-    if (output_var_type[i] == CFG_FILE_IOVAR_HRUST_TAG) {
-      config_value_id = pModel->GetStateVarInfo()->StringToSVType(output_var_names[i],
-                                                                  config_out_var_layer_index,
-                                                                  true);
-      output_var_ids.push_back(config_value_id);
-      output_var_layer_index.push_back(config_out_var_layer_index);
-      continue;
-    }
-    throw std::logic_error("WARNING: Output variable '" + output_var_names[i] + "' has an invalid type '" + output_var_type[i] + "'.");
-  }
+  _UpdateOutputVariables();
+  _UpdateCalculateInputFlags();
 
   PrepareOutputdirectory(Options); //adds new output folders, if needed
   pModel->WriteOutputFileHeaders(Options);

@@ -14,6 +14,15 @@
 class CRavenBMI : public bmixx::Bmi
 {
   private:
+    // constants used in the config file (cfg_file) parsing
+    const std::string CFG_FILE_CLIARGS_TAG = "cli_args";
+    const std::string CFG_FILE_INPVARS_TAG = "input_vars";
+    const std::string CFG_FILE_OUTVARS_TAG = "output_vars";
+    const std::string CFG_FILE_IOVAR_FORCE_TAG = "forcing";
+    const std::string CFG_FILE_IOVAR_HRUST_TAG = "hru_state";
+    const std::string CFG_FILE_IOVAR_SUBST_TAG = "subbasin_state";
+
+    // variable attributes
     CModel     *pModel;
     optStruct   Options;
     time_struct tt;
@@ -26,11 +35,19 @@ class CRavenBMI : public bmixx::Bmi
     std::vector<int>         output_var_layer_index;
     std::vector<std::string> output_var_type;
 
-    // Internal functions for reading the YAML config file.
+    // some inputs may need to be calculated from other inputs
+    bool calculate_input_temp_daily_ave;
+    bool calculate_input_temp_monthly_ave;
+
+    // internal functions for reading the YAML config file
     void _ReadConfigFile(std::string config_file);
     std::vector<char *> _SplitLineByWhitespace(std::string line);
     std::vector<std::string> _SplitLineByColon(std::string line);
     bool _IsValidSubBasinStateVariable(std::string var_name);
+
+    // internal functions for updating internal variables and flags
+    void _UpdateOutputVariables();
+    void _UpdateCalculateInputFlags();
 
   public:
     CRavenBMI();

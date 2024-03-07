@@ -230,10 +230,20 @@ void CModel::UpdateHRUForcingFunctions(const optStruct &Options,
 
       // if in BMI without RVT file, precip and temp values are expected to have been given before this point
       if (Options.in_bmi_mode && !rvt_file_provided) {
+        cout << "Setting P: " << _pHydroUnits[k]->GetForcingFunctions()->precip << ", Ta: " << _pHydroUnits[k]->GetForcingFunctions()->temp_ave << ", TdMin: " << _pHydroUnits[k]->GetForcingFunctions()->temp_daily_min << ", TdMax: " << _pHydroUnits[k]->GetForcingFunctions()->temp_daily_max << ", TdAve: " << _pHydroUnits[k]->GetForcingFunctions()->temp_daily_ave << "." << endl;
         F.precip           = _pHydroUnits[k]->GetForcingFunctions()->precip + 0.0;
         F.precip_daily_ave = _pHydroUnits[k]->GetForcingFunctions()->precip + 0.0;  // TODO: check
         F.precip_5day      = F.precip * 5;                                          // TODO: check
         F.temp_ave         = _pHydroUnits[k]->GetForcingFunctions()->temp_ave + 0.0;
+        F.temp_daily_ave   = _pHydroUnits[k]->GetForcingFunctions()->temp_daily_ave + 0.0;
+        F.temp_daily_min   = _pHydroUnits[k]->GetForcingFunctions()->temp_daily_min + 0.0;
+        F.temp_daily_max   = _pHydroUnits[k]->GetForcingFunctions()->temp_daily_max + 0.0;
+        // if ((F.temp_daily_ave == 0.0) && ((F.temp_daily_min != 0.0) || (F.temp_daily_max != 0.0))) {
+        F.temp_daily_ave = (F.temp_daily_min + F.temp_daily_max)/2;
+        // }
+        F.temp_month_ave   = _pHydroUnits[k]->GetForcingFunctions()->temp_month_ave + 0.0;
+        F.temp_month_min   = _pHydroUnits[k]->GetForcingFunctions()->temp_month_min + 0.0;
+        F.temp_month_max   = _pHydroUnits[k]->GetForcingFunctions()->temp_month_max + 0.0;
       }
 
       //-------------------------------------------------------------------
@@ -427,7 +437,7 @@ void CModel::UpdateHRUForcingFunctions(const optStruct &Options,
       {
         // TODO: test if is fair to do it now with arbitrary inputs
         // F.temp_daily_ave = F.temp_daily_max = F.temp_daily_min = F.temp_ave;
-        cout << "SKIPPING TWEK!\n";
+        cout << "Min. Temp.: " << F.temp_daily_min << ", Max. Temp.: " << F.temp_daily_max << ", Average: " << F.temp_ave << "\n";
         ;
       }
       else if (!(temp_ave_gridded || (temp_daily_min_gridded && temp_daily_max_gridded) || temp_daily_ave_gridded)) //Gauge Data
@@ -1060,6 +1070,7 @@ double CModel::EstimateSnowFraction(const rainsnow_method method,
       else {
           frac = 0.5 + (temp - F->temp_daily_ave) / delta;
       }
+      cout << "Updating snow fraction with daily ave '" << F->temp_daily_ave << "', frac: " << frac << ", snow_frac: " << F->snow_frac << endl;
       if    (method == RAINSNOW_UBCWM) { return frac; }
       //HBV-EC implementation - correction only applied to rain portion of snow (assumes snow data provided)
       else if (method == RAINSNOW_HBV) { return frac * (1.0 - F->snow_frac) + F->snow_frac; }

@@ -234,6 +234,21 @@ void CModel::UpdateHRUForcingFunctions(const optStruct &Options,
         F.precip_daily_ave = _pHydroUnits[k]->GetForcingFunctions()->precip + 0.0;  // TODO: check
         F.precip_5day      = F.precip * 5;                                          // TODO: check
         F.temp_ave         = _pHydroUnits[k]->GetForcingFunctions()->temp_ave + 0.0;
+        F.temp_daily_ave   = _pHydroUnits[k]->GetForcingFunctions()->temp_daily_ave + 0.0;
+        F.temp_daily_min   = _pHydroUnits[k]->GetForcingFunctions()->temp_daily_min + 0.0;
+        F.temp_daily_max   = _pHydroUnits[k]->GetForcingFunctions()->temp_daily_max + 0.0;
+        if (Options.bmi_calc_temp_daily_ave) {
+          F.temp_daily_ave = (F.temp_daily_min + F.temp_daily_max) / 2;
+        } else {
+          F.temp_daily_ave = _pHydroUnits[k]->GetForcingFunctions()->temp_daily_ave + 0.0;
+        }
+        F.temp_month_min   = _pHydroUnits[k]->GetForcingFunctions()->temp_month_min + 0.0;
+        F.temp_month_max   = _pHydroUnits[k]->GetForcingFunctions()->temp_month_max + 0.0;
+        if (Options.bmi_calc_temp_daily_ave) {
+          F.temp_month_ave = (F.temp_month_min + F.temp_month_max) / 2;
+        } else {
+          F.temp_month_ave = _pHydroUnits[k]->GetForcingFunctions()->temp_month_ave + 0.0;
+        }
       }
 
       //-------------------------------------------------------------------
@@ -425,7 +440,10 @@ void CModel::UpdateHRUForcingFunctions(const optStruct &Options,
       //--Gauge Corrections------------------------------------------------
       if (Options.in_bmi_mode && !rvt_file_provided)  // temperature was given by the BMI and no gauge corrections are to be applied
       {
-        F.temp_daily_ave = F.temp_daily_max = F.temp_daily_min = F.temp_ave;  // TODO: check if this is acceptable
+        // if only the average temperature is given we may have to propagate it to the other temperature variables
+        if (Options.bmi_only_temp_ave) {
+          F.temp_daily_ave = F.temp_daily_max = F.temp_daily_min = F.temp_ave;
+        }
       }
       else if (!(temp_ave_gridded || (temp_daily_min_gridded && temp_daily_max_gridded) || temp_daily_ave_gridded)) //Gauge Data
       {

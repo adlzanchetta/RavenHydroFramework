@@ -1123,6 +1123,12 @@ struct optStruct
   double           diag_start_time;           ///< Model time to start diagnostics
   double           diag_end_time;             ///< Model time to start diagnostics
 
+  // BMI-specific
+  bool             in_bmi_mode;               ///< true if in BMI mode (no rvt files, no end time)
+  bool             bmi_calc_temp_daily_ave;   ///< true if daily average temperature needs to be calculated
+  bool             bmi_calc_temp_month_ave;   ///< true if monthly average temperature needs to be calculated
+  bool             bmi_only_temp_ave;         ///< true if only temp_ave is the only temperature information available
+
   // Other
   bool             assimilate_flow;           ///< turn on streamflow assimilation
   bool             assimilate_stage;          ///< turn on lake stage assimilation
@@ -1131,7 +1137,6 @@ struct optStruct
   netcdfatt       *aNetCDFattribs;            ///< array of NetCDF attrributes {attribute/value pair}
   int              nNetCDFattribs;            ///< size of array of NetCDF attributes
   int              NetCDF_chunk_mem;          ///< [MB] size of memory chunk for each forcing grid
-  bool             in_bmi_mode;               ///< true if in BMI mode (no rvt files, no end time)
 };
 
 ///////////////////////////////////////////////////////////////////

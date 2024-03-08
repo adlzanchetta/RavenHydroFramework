@@ -340,6 +340,8 @@ void CRavenBMI::_UpdateCalculateInputFlags()
       (!(input_temp_daily_min || input_temp_daily_max || input_temp_daily_ave)) &&
       (!(input_temp_month_min || input_temp_month_max || input_temp_month_ave))) {
     Options.bmi_only_temp_ave = true;
+  } else {
+    Options.bmi_only_temp_ave = false;
   }
 
 }

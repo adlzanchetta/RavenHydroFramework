@@ -235,7 +235,6 @@ double GetForcingFromType(const forcing_type &ftype, const force_struct &f)
 //
 void  SetForcingFromType(const forcing_type &ftype, force_struct &f, const double &val)
 {
-  cout << "Setting value " << val << " for forcing type " << ftype << endl;
   if      (ftype==F_PRECIP          ){f.precip=val;}
   else if (ftype==F_PRECIP_DAILY_AVE){f.precip_daily_ave=val;}
   else if (ftype==F_PRECIP_5DAY     ){f.precip_5day=val;}
